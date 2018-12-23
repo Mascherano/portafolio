@@ -1,10 +1,7 @@
 <?php
-
-	require_once('app/Models/Job.php');
-	require_once('app/Models/Project.php');
-	require_once('app/Models/Printable.php');
-	require_once('lib1/Project.php');
-
+	
+	require_once 'vendor/autoload.php';
+	
 	use App\Models\{Job, Project, Printable};
 
 	$job1 = new Job('PHP Developer', 'this is awesome job!!');
