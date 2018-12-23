@@ -1,14 +1,11 @@
 <?php
 
 	namespace App\Models;	
-	require_once('BaseElement.php');
+	use Illuminate\Database\Eloquent\Model;
 
-	class Project extends BaseElement{
+	class Project extends Model{
 
-		public function __construct($title, $description){
-			$newTitle = 'Project ' . $title;
-			parent::__construct($newTitle, $description);
-		}
+		protected $table = 'projects';
 
 		public function getDurationAsString(){
 		    $years = floor($this->months / 12);
