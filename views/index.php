@@ -1,13 +1,3 @@
-<?php
-
-  use App\Models\Job;
-
-  require_once('jobs.php');
-
-  $nombre = 'Marcelo González';
-  $limitMonths = 1000;
-?>
-
 <!doctype html>
 <html lang="en">
 
