@@ -1,0 +1,16 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+	<h1>Add Project</h1>
+	<div class="alert alert-primary" role="alert">
+		{{ responseMessage }}
+	</div>
+	<form action="/portafolio/projects/add" method="post" enctype="multipart/form-data">
+		<label for="">Titulo</label>
+		<input type="text" name="title"><br>
+		<label for="">Descripción</label>
+		<input type="text" name="description"><br>
+		<input type="file" name="logo"><br>
+		<button type="submit">Enviar</button>
+	</form>
+{% endblock %}

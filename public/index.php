@@ -6,6 +6,11 @@
 
 	require_once '../vendor/autoload.php';
 
+	session_start();
+
+	$dotenv = new Dotenv\Dotenv(__DIR__.'/..');
+	$dotenv->load();
+
 	use Illuminate\Database\Capsule\Manager as Capsule;
 	use Aura\Router\RouterContainer;
 
@@ -13,10 +18,10 @@
 
 	$capsule->addConnection([
 	    'driver'    => 'mysql',
-	    'host'      => 'localhost',
-	    'database'  => 'portafolio',
-	    'username'  => 'root',
-	    'password'  => '',
+	    'host'      => getenv('DB_HOST'),
+	    'database'  => getenv('DB_NAME'),
+	    'username'  => getenv('DB_USER'),
+	    'password'  => getenv('DB_PASS'),
 	    'charset'   => 'utf8',
 	    'collation' => 'utf8_unicode_ci',
 	    'prefix'    => '',
@@ -46,45 +51,93 @@
 
 	$map->get('addJobs', '/portafolio/jobs/add', [
 		'controller' => 'App\Controllers\JobsController',
-		'action' => 'getAddJobAction'
+		'action' => 'getAddJobAction',
+		'auth' => true
 	]);
 
-	$map->get('addJProjects', '/portafolio/projects/add', [
+	$map->post('saveJobs', '/portafolio/jobs/add', [
+		'controller' => 'App\Controllers\JobsController',
+		'action' => 'getAddJobAction',
+		'auth' => true
+	]);
+
+	$map->get('addProjects', '/portafolio/projects/add', [
 		'controller' => 'App\Controllers\ProjectsController',
-		'action' => 'getAddProjectAction'
+		'action' => 'getAddProjectAction',
+		'auth' => true
+	]);
+
+	$map->post('saveProjects', '/portafolio/projects/add', [
+		'controller' => 'App\Controllers\ProjectsController',
+		'action' => 'getAddProjectAction',
+		'auth' => true
+	]);
+
+	$map->get('addUsers', '/portafolio/users/add', [
+		'controller' => 'App\Controllers\UsersController',
+		'action' => 'saveUser',
+		'auth' => true
+	]);
+
+	$map->post('saveUsers', '/portafolio/users/add', [
+		'controller' => 'App\Controllers\UsersController',
+		'action' => 'saveUser',
+		'auth' => true
+	]);
+
+	$map->get('loginForm', '/portafolio/login', [
+		'controller' => 'App\Controllers\AuthController',
+		'action' => 'getLogin'
+	]);
+
+	$map->get('logout', '/portafolio/logout', [
+		'controller' => 'App\Controllers\AuthController',
+		'action' => 'getLogout',
+		'auth' => true
+	]);
+
+	$map->post('auth', '/portafolio/auth', [
+		'controller' => 'App\Controllers\AuthController',
+		'action' => 'postLogin',
+		'auth' => true
+	]);
+
+	$map->get('admin', '/portafolio/admin', [
+		'controller' => 'App\Controllers\AdminController',
+		'action' => 'getIndex',
+		'auth' => true
 	]);
 
 	$matcher = $routerContainer->getMatcher();
 	$route = $matcher->match($request);
 
-	function printElement($job){
-
-	    // if($job->visible == false){
-	    //   return;
-	    // }
-
-	    echo '<li class="work-position">';
-	    echo '<h5>' . $job->title. '</h5>';
-	    echo '<p>' . $job->description . '</p>';
-	    echo '<p>' . $job->getDurationAsString() . '</p>';
-	    echo '<strong>Achievements:</strong>';
-	    echo '<ul>';
-	    echo '<li>Lorem ipsum dolor sit amet, 80% consectetuer adipiscing elit.</li>';
-	    echo '<li>Lorem ipsum dolor sit amet, 80% consectetuer adipiscing elit.</li>';
-	    echo '<li>Lorem ipsum dolor sit amet, 80% consectetuer adipiscing elit.</li>';
-	    echo '</ul>';
-	    echo '</li>';
-	}
-
 	if(!$route){
 		echo 'No route';
 	}else{
 		$handlerData = $route->handler;
-		$controllerName = $handlerData['controller'];
-		$actionName = $handlerData['action'];
+		$needsAuth = $handlerData['auth'] ?? false;
+
+		$sessionUserId = $_SESSION['userId'] ?? null;
+
+		if($needsAuth && !$sessionUserId){
+			$controllerName = 'App\Controllers\AuthController';
+			$actionName = 'getLogout';
+		}else{
+			$controllerName = $handlerData['controller'];
+			$actionName = $handlerData['action'];	
+		}
 
 		$controller = new $controllerName;
-		$controller->$actionName();
+		$response = $controller->$actionName($request);
+
+		foreach ($response->getHeaders() as $name => $values) {
+			foreach ($values as $value) {
+				header(sprintf('%s: %s', $name, $value), false);
+			}
+		}
+
+		http_response_code($response->getStatusCode());
+		echo $response->getBody();
 	}
 	
 

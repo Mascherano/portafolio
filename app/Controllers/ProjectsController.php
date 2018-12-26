@@ -3,17 +3,46 @@
 	namespace App\Controllers;
 
 	use App\Models\Project;
+	use Respect\Validation\Validator as v;
 
-	class ProjectsController{
-		public function getAddProjectAction(){
+	class ProjectsController extends BaseController{
+		public function getAddProjectAction($request){
+
+			$responseMessage = null;
 
 			//creamos una instancia de Job y la guardamos con el ORM Eloquent
-			if(!empty($_POST)){
-				$project = new Project();
-				$project->title = $_POST['title'];
-				$project->description = $_POST['description'];
-				$project->save();
+			if($request->getMethod() == 'POST'){
+				
+				$postData = $request->getParsedBody();
+
+				$projectValidator = v::key('title', v::stringType()->notEmpty())->key('description', v::stringType()->notEmpty());
+
+				try{
+					$projectValidator->assert($postData);
+
+					$files = $request->getUploadedFiles();
+					$logo = $files['logo'];
+
+					$project = new Project();
+					$project->title = $postData['title'];
+					$project->description = $postData['description'];
+
+					if($logo->getError() == UPLOAD_ERR_OK) {
+						$fileName = $logo->getClientFilename();
+						$logo->moveTo("uploads/$fileName");
+						$project->logo = "uploads/$fileName";
+					}
+					
+					$project->save();
+
+					$responseMessage = 'Saved';
+				}catch(\Exception $e){
+					$responseMessage = $e->getMessage();
+				}
 			}
-			include '../views/addProject.php';
+
+			return $this->renderHTML('addProject.twig', [
+				'responseMessage' => $responseMessage
+			]);
 		}
 	}
