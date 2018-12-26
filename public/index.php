@@ -96,8 +96,7 @@
 
 	$map->post('auth', '/portafolio/auth', [
 		'controller' => 'App\Controllers\AuthController',
-		'action' => 'postLogin',
-		'auth' => true
+		'action' => 'postLogin'
 	]);
 
 	$map->get('admin', '/portafolio/admin', [
