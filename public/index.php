@@ -81,8 +81,7 @@
 
 	$map->post('saveUsers', '/portafolio/users/add', [
 		'controller' => 'App\Controllers\UsersController',
-		'action' => 'saveUser',
-		'auth' => true
+		'action' => 'saveUser'
 	]);
 
 	$map->get('loginForm', '/portafolio/login', [
